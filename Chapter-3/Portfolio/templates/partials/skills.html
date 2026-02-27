@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div>
+    <h1 class="text-3xl font-bold mb-6">My Skills</h1>
+    <ul class="list-disc pl-6 space-y-2 text-lg">
+        {% for skill in skills %}
+        <li>{{ skill }}</li>
+        {% endfor %}
+    </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div>
+    <h1 class="text-3xl font-bold mb-6">My Projects</h1>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for project in projects %}
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-2">{{ project.Name }}</h2>
+            <p class="mb-4">{{ project.Description }}</p>
+            <a href="{{ project.GithubLink }}" target="_blank"
+               class="text-blue-600 hover:underline">View on GitHub →</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+</body>
+</html>

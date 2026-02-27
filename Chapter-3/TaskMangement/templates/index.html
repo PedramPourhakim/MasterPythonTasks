@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Task Management</title>
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<body class="bg-light">
+<div class="container my-5">
+    <h1 class="text-center mb-4">Task Management</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+    <!-- Create Button -->
+    <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#taskModal">
+        Create Task
+    </button>
+<button type="button" class="btn btn-outline-success mb-4 ms-2"
+        data-bs-toggle="modal" data-bs-target="#uploadExcelModal">
+    📤 Import from Excel
+</button>
+<!-- Export Button -->
+<a href="{{ url_for('export_json') }}" class="btn btn-outline-info mb-4 ms-2">
+    ⬇️ Export as JSON
+</a>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadExcelModal" tabindex="-1" aria-labelledby="uploadExcelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadExcelModalLabel">Import Tasks from Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Upload an Excel file (.xlsx) with columns:</p>
+                <ul>
+                    <li><strong>title</strong> (required)</li>
+                    <li><strong>description</strong> (optional)</li>
+                    <li><strong>state</strong> (Pending or Completed)</li>
+                </ul>
+                <p class="text-muted small">First row should contain headers.</p>
+
+                <form action="{{ url_for('upload_excel') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <input type="file" class="form-control" id="file" name="file" accept=".xlsx" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Upload & Import</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- Task List -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            Tasks
+            {% if tasks %}<span class="badge bg-secondary">{{ tasks|length }}</span>{% endif %}
+            <small class="text-muted">Click pencil to edit • trash to delete</small>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% if tasks %}
+            {% for task in tasks %}
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+                <div>
+                    <h5>
+                        {{ task.title }}
+                        <span class="badge bg-{{ 'success' if task.state == 'Completed' else 'warning' }}">
+                                {{ task.state }}
+                            </span>
+                    </h5>
+                    <p class="mb-1">{{ task.description or '(no description)' }}</p>
+                    <small class="text-muted">Created: {{ task.creation_date }}</small>
+                </div>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-primary edit-btn"
+                            data-bs-toggle="modal" data-bs-target="#taskModal"
+                            data-id="{{ task.id }}"
+                            data-title="{{ task.title | e }}"
+                            data-description="{{ task.description | e }}"
+                            data-state="{{ task.state }}">
+                        ✏️ Edit
+                    </button>
+
+                    <button type="button" class="btn btn-outline-danger delete-btn"
+                            data-bs-toggle="modal" data-bs-target="#deleteConfirmModal"
+                            data-id="{{ task.id }}"
+                            data-title="{{ task.title | e }}">
+                        🗑️ Delete
+                    </button>
+                </div>
+            </li>
+            {% endfor %}
+            {% else %}
+            <li class="list-group-item">No tasks yet.</li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <!-- Task Modal (used for both Create and Edit) -->
+    <div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="taskModalLabel">Create New Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="taskForm" method="post">
+                        <input type="hidden" name="task_id" id="edit_task_id" value="">
+
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="state" class="form-label">State</label>
+                            <select class="form-select" id="state" name="state" required>
+                                <option value="Pending">Pending</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this task?</p>
+                <p class="fw-bold mb-1" id="task-to-delete">Task title will appear here</p>
+                <small class="text-muted">This action cannot be undone.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('taskModal');
+        const form = document.getElementById('taskForm');
+        const titleInput = document.getElementById('title');
+        const descInput = document.getElementById('description');
+        const stateSelect = document.getElementById('state');
+        const idInput = document.getElementById('edit_task_id');
+        const modalLabel = document.getElementById('taskModalLabel');
+
+        // When edit button is clicked
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.getAttribute('data-id');
+                const title = this.getAttribute('data-title');
+                const desc = this.getAttribute('data-description');
+                const state = this.getAttribute('data-state');
+
+                // Fill form
+                idInput.value = id;
+                titleInput.value = title;
+                descInput.value = desc;
+                stateSelect.value = state;
+
+                // Change title and form action
+                modalLabel.textContent = 'Edit Task';
+                form.action = `/edit/${id}`;
+            });
+        });
+
+        // Reset modal when opening for create
+        modal.addEventListener('show.bs.modal', function (event) {
+            const trigger = event.relatedTarget; // Button that triggered modal
+            if (!trigger.classList.contains('edit-btn')) {
+                // It's the Create button
+                modalLabel.textContent = 'Create New Task';
+                form.action = '/create_task';
+                form.reset();
+                idInput.value = '';
+            }
+        });
+    });
+    // Delete confirmation logic
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteModal = document.getElementById('deleteConfirmModal');
+        const deleteForm = document.getElementById('deleteForm');
+        const taskTitleEl = document.getElementById('task-to-delete');
+
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.getAttribute('data-id');
+                const title = this.getAttribute('data-title');
+
+                // Show task title in confirmation
+                taskTitleEl.textContent = title || '(untitled task)';
+
+                // Set correct POST URL
+                deleteForm.action = `/delete/${id}`;
+            });
+        });
+    });
+</script>
+<!-- Bootstrap 5 JS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+</body>
+</html>
