@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interesting App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div class="header">
+        <h1>Favourites App</h1>
+        <button class="btn btn-primary" onclick="document.getElementById('createModal').style.display='block'">
+            Add Favourite
+        </button>
+    </div>
+
+    <!-- Create Favourite Modal -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="document.getElementById('createModal').style.display='none'">&times;</span>
+            <h2>Create Interest</h2>
+            <form action="{{ url_for('create') }}" method="POST">
+                <div class="form-group">
+                    <label for="name">Name :</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="age">Age :</label>
+                    <input type="number" class="form-control" id="age" name="age" required>
+                </div>
+                <div class="form-group">
+                    <label for="interest">Interest :</label>
+                    <input type="text" class="form-control" id="interest" name="interest" required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Amount Of Interest :</label>
+                    <select class="form-select" id="amount" name="amount" required>
+                        <option value=1>1</option>
+                        <option value=2>2</option>
+                        <option value=3>3</option>
+                        <option value=4>4</option>
+                        <option value=5>5</option>
+                        <option value=6>6</option>
+                        <option value=7>7</option>
+                        <option value=8>8</option>
+                        <option value=9>9</option>
+                        <option value=10>10</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description :</label>
+                    <textarea class="form-control form-textarea" id="description" name="description" rows="4" placeholder="Write some description about your favourite..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('createModal').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Table for Favourites -->
+    <div class="table-container">
+        <table class="favourites-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Interest</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fav in favourites %}
+                <tr>
+                    <td>{{ fav.name }}</td>
+                    <td>{{ fav.age }}</td>
+                    <td>{{ fav.interest }}</td>
+                    <td>{{ fav.amount }}</td>
+                    <td>{{ fav.description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

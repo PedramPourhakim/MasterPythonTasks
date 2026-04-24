@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" x-data="{ currentSection: 'home' }" x-init="currentSection = window.location.pathname.substring(1) || 'home'">
+<head>
+    <meta charset="UTF-8">
+    <title>Pedram Pourhakim - Portfolio</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://unpkg.com/htmx.org@2.0.1"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Navigation -->
+    <nav>
+    <div class="container">
+        <div class="logo">Pedram Pourhakim</div>
+        <div>
+            <a href="/" hx-get="/home"    hx-target="#content" hx-push-url="true" hx-swap="innerHTML transition:true" data-section="home">Home</a>
+            <a href="/skills" hx-get="/skills" hx-target="#content" hx-push-url="true" hx-swap="innerHTML transition:true" data-section="skills">Skills</a>
+            <a href="/projects" hx-get="/projects" hx-target="#content" hx-push-url="true" hx-swap="innerHTML transition:true" data-section="projects">Projects</a>
+        </div>
+    </div>
+</nav>
+
+    <!-- Main content area that gets replaced -->
+    <main id="content" class="container mx-auto py-10 px-4 min-h-screen transition-opacity duration-300">
+        {% block content %}{% endblock %}
+        <!-- Home is default -->
+        {% include 'partials/home.html' %}
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center py-4">
+        © 2026 Pedram Pourhakim
+    </footer>
+<script>
+    document.querySelectorAll('nav a').forEach(link => {
+        link.addEventListener('click', () => {
+            document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+            link.classList.add('active');
+        });
+    });
+    // Set initial active
+    document.querySelector('nav a[href="' + window.location.pathname + '"]')?.classList.add('active') ||
+    document.querySelector('nav a[href="/"]').classList.add('active');
+</script>
+</body>
+</html>
